@@ -1,108 +1,80 @@
 pipeline {
     agent any
+
     environment {
-        CONTAINER_NAME = 'demo'
-        SPRING_PROFILES_ACTIVATE = 'dev'
+        CONTAINER_NAME = 'student'
+//         SPRING_PROFILES_ACTIVE = 'qa'
+        IMAGE_NAME = 'student'
     }
 
     stages {
-        stage('Checkout') {
+        stage('Build with Maven') {
             steps {
-                git branch: 'main', url: 'https://github.com/Thunderscotch/SpringBoot-StudentDetails.git'
-                  }
-            }
-        stage('Compile and Clean'){
-            steps{
-                sh "mvn clean compile"
-            }
-        }
-        stage('deploy'){
-            steps{
-                sh "mvn package"
+//                 bat 'chmod +x mvnw'    //have to add this line when using in the linux system
+                bat './mvnw clean package -DskipTests'
             }
         }
 
-        stage('Start up docker compose'){
-            steps{
-                sh 'docker-compose down || true'
-                sh 'docker-compose up -d --build'
+        stage('Build Docker Image') {
+            steps {
+                bat "docker build -t bk/${IMAGE_NAME}:${BUILD_NUMBER} ."
             }
         }
 
-//         stage('Build Application'){
-//             steps{
-//             sh 'mvn clean package -DskipTests'
-//             }
-//         }
-
-//         stage('Build Docker Image'){
-//             steps{
-//                 sh "docker build -t $IMAGE_NAME : ${BUILD_NUMBER} ."
-//             }
-//         }
-        stage('Docker Login'){
-            steps{
-                withCredentials([string(credentialsId: 'StudentDetailsID', variable: 'StudentDetailsPwd') ]){
-                    sh "docker login -u studentdetails -p ${StudentDetailsPwd}"
+        /*
+        stage('Docker Login') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: '05c2f389-259a-4696-b6f7-f4b184ae71fa', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat """
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                    """
                 }
             }
         }
-        stage('Docker Push'){
-            steps{
-                sh 'docker push demo:${BUILD_NUMBER}'
+
+        stage('Docker Push') {
+            steps {
+                bat "docker push thunderscotch23/demo:%BUILD_NUMBER%"
             }
         }
-//         stage('Stop & Remove Old Repository'){
-//             steps{
-//                 sh """
-//                     docker stop $IMAGE_NAME || true
-//                     docker rm $IMAGE_NAME || true
-//                     """
-//             }
-//         }
-// stage('Docker deploy'){
+        */
+
+//         stage('Docker deploy') {
 //             steps {
-//               script {
-//                 // Stop and remove the existing container if it exists
-//                 def containerExists = sh(script: "docker ps -aq -f name=${CONTAINER_NAME}", returnStdout: true).trim()
-//                 if (containerExists) {
-//                   echo "Stopping and removing existing container: ${CONTAINER_NAME}"
-//                   sh "docker stop ${CONTAINER_NAME}"
-//                   sh "docker rm ${CONTAINER_NAME}"
-//                 } else {
-//                   echo "No existing container found with name ${CONTAINER_NAME}"
+//                 script {
+// //                     Stop and remove the existing container if it exists
+//                     def containerExists = sh(script: "docker ps -aq -f name=${CONTAINER_NAME}", returnStdout: true).trim()
+//
+//                     // Uncomment this block to remove existing containers
+//
+//                     if (containerExists) {
+//                         echo "Stopping and removing existing container: ${CONTAINER_NAME}"
+//                         sh "docker stop ${CONTAINER_NAME}"
+//                         sh "docker rm ${CONTAINER_NAME}"
+//                     } else {
+//                         echo "No existing container found with name ${CONTAINER_NAME}"
+//                     }
+//
 //                 }
-//               }
-//
-//                 // Remove old image if it exists
+
+                // Uncomment to clean up old images
+
 //                 sh """
-//                     # Find the old image ID (excluding the latest build)
-//                     OLD_IMAGE_ID=\$(docker images -q demo | tail -n +2)
-//
-//                     if [ -n "\$OLD_IMAGE_ID" ]; then
-//                         echo "Removing old images..."
-//                         docker rmi -f \$OLD_IMAGE_ID || true
-//                     else
-//                         echo "No old images found."
-//                     fi
+//                     FOR /F "skip=1 delims=" %%i IN ('docker images -q thunderscotch23/demo') DO docker rmi -f %%i
 //                 """
-//               // Run a new container
-//               echo "Deploying new container: ${CONTAINER_NAME}"
-//               //sh 'docker run -itd -p  8092:8080 mentorbridge/stupro:${BUILD_NUMBER}'
-//               sh 'docker run -d --name ${CONTAINER_NAME} -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE} -p  8086:8096 demo:${BUILD_NUMBER}'
+//
+//
+//                 // Run a new container
+//                 echo "Deploying new container: ${CONTAINER_NAME}"
+//                 sh 'docker run -d --name %CONTAINER_NAME% -e SPRING_PROFILES_ACTIVE=%SPRING_PROFILES_ACTIVE% -p 8086:8086 thunderscotch23/demo:%BUILD_NUMBER%'
 //             }
 //         }
-//         stage('Archving') {
-//                     steps {
-//                          archiveArtifacts '**/target/*.jar'
-//                     }
-//                     }
-//         stage('Run Docker Container') {
-//             steps{
-//                 sh"""
-//                     docker run -d --name $IMAGE_NAME -p $HOST_PORT:$CONTAINER_PORT $IMAGE_NAME
-//                     """
-//                 }
-//         }
-}
+
+        stage('Start up docker compose') {
+            steps {
+                bat 'docker-compose down || exit 0'
+                bat 'docker-compose up -d --build'
+            }
+        }
+    }
 }
