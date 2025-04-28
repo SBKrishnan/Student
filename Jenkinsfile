@@ -70,11 +70,11 @@ pipeline {
 //             }
 //         }
 
-        stage('Start up docker compose') {
-            steps {
-                bat 'docker-compose down || exit 0'
-                bat 'docker-compose up -d --build'
-            }
-        }
+//         stage('Start up docker compose') {
+//             steps {
+//                 bat 'docker-compose down || exit 0'
+//                 bat 'docker-compose up -d --build'
+//             }
+//         }
     }
 }
