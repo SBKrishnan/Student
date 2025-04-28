@@ -21,6 +21,12 @@ pipeline {
             }
         }
 
+        stage('Run Docker Image'){
+            steps{
+                bat "docker run ${IMAGE_NAME} ."
+            }
+        }
+
         /*
         stage('Docker Login') {
             steps {
