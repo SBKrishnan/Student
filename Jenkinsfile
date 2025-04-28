@@ -23,7 +23,7 @@ pipeline {
 
         stage('Run Docker Image'){
             steps{
-                bat "docker run -p 8086:8086 ${IMAGE_NAME}"
+                bat "docker run -d -p 8086:8086 ${IMAGE_NAME}"
             }
         }
 
