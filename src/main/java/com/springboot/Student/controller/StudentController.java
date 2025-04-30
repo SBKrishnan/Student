@@ -5,7 +5,7 @@ import com.springboot.Student.dto.StudentDTO;
 import com.springboot.Student.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-@RequestMapping("/student")
+@RequestMapping("/api/post")
 @RestController
 public class StudentController {
 
